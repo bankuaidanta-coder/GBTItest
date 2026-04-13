@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>股市GBTI · 韭味测试</title>
+    <!-- 仅保留 html2canvas，二维码用原生 Canvas 生成 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#e3f0fa; font-family:system-ui, -apple-system, sans-serif; padding:30px 20px; min-height:100vh; }
+        .container { max-width:900px; margin:0 auto; }
+        .card { background:#fff; border-radius:36px; padding:32px 28px; margin-bottom:28px; box-shadow:0 20px 35px -8px rgba(0,20,40,0.15); border:1px solid #cddbe8; }
+        .hero-title { font-size:3rem; font-weight:850; background:linear-gradient(145deg,#103244,#2a6280); -webkit-background-clip:text; background-clip:text; color:transparent; text-align:center; margin-bottom:20px; }
+        .hero-sub { text-align:center; color:#3e6182; border-top:2px dashed #b3cee5; padding-top:22px; }
+        .start-btn-wrapper { text-align:center; margin:30px 0 20px; }
+        .btn-start { background:#1f6385; border:none; padding:18px 60px; border-radius:60px; font-weight:700; font-size:1.5rem; color:#fff; cursor:pointer; box-shadow:0 10px 25px rgba(31,99,133,0.25); }
+        .grid-title { font-size:1.8rem; font-weight:700; color:#103244; text-align:center; margin:40px 0 20px; }
+        .personality-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px 16px; }
+        .grid-item { text-align:center; background:#f5faff; border-radius:24px; padding:16px 8px; border:1.5px solid #c7ddef; }
+        .grid-img { width:100%; max-width:120px; height:auto; border-radius:18px; margin-bottom:10px; }
+        .grid-name { font-weight:650; color:#1e3a5f; }
+        @media (max-width:600px){ .personality-grid{ grid-template-columns:repeat(2,1fr); } }
+        .progress-section { display:flex; align-items:center; gap:18px; margin:10px 0 28px; }
+        .progress-track { flex:1; height:10px; background:#d1e0ee; border-radius:30px; }
+        .progress-fill { height:10px; width:0%; background:#1f6385; border-radius:30px; }
+        .progress-text { font-weight:700; color:#1f4868; }
+        .q-num { background:#dbe8f3; padding:6px 22px; border-radius:40px; font-weight:650; color:#173e57; display:inline-block; margin-bottom:16px; }
+        .q-text { font-size:1.6rem; font-weight:700; margin:20px 0 28px; color:#082433; }
+        .options { display:flex; flex-direction:column; gap:14px; }
+        .option { background:#f5faff; border:2px solid #c7ddef; border-radius:28px; padding:18px 24px; font-weight:550; color:#103247; display:flex; align-items:center; cursor:pointer; }
+        .option.selected { background:#cde2f2; border-color:#1f6385; }
+        .option-letter { background:#cbdae8; border-radius:50px; width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; font-weight:800; margin-right:22px; color:#103c54; }
+        .option.selected .option-letter { background:#1f6385; color:#fff; }
+        .nav-buttons { display:flex; justify-content:space-between; margin-top:40px; }
+        .btn { background:#fff; border:2px solid #b7d0e4; padding:14px 34px; border-radius:60px; font-weight:700; color:#1c4b6e; cursor:pointer; }
+        .btn-primary { background:#1f6385; border-color:#1f6385; color:#fff; }
+        .btn:disabled { opacity:0.35; }
+        .result-header { font-size:2.4rem; font-weight:700; text-align:center; color:#103244; margin-bottom:20px; }
+        .personality-name-large { font-size:4rem; font-weight:850; text-align:center; color:#0b3349; margin:20px 0 10px; }
+        .feature-text { font-size:1.4rem; text-align:center; margin:25px 0; color:#1f4e6b; }
+        .quote-large { background:#e3f0fa; padding:28px 25px; border-radius:48px; border-left:12px solid #3e7b9c; font-size:1.5rem; text-align:center; margin:30px 0; color:#0d3f59; }
+        .restart-btn { text-align:center; margin-top:30px; }
+        .footer { text-align:center; color:#6c8da8; margin-top:30px; }
+        .hidden { display:none !important; }
+        .hint-text { text-align:center; color:#5f7d9a; margin-top:20px; }
+        .personality-image-container { text-align:center; margin:10px 0 20px; }
+        .personality-image { max-width:280px; width:100%; border-radius:24px; }
+        .share-btn-wrapper { text-align:center; margin:20px 0 10px; }
+        .btn-share { background:#27ae60; border:none; padding:16px 40px; border-radius:60px; font-weight:700; font-size:1.3rem; color:#fff; cursor:pointer; }
+        .poster-modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:1000; }
+        .poster-container { background:#fff; border-radius:36px; padding:24px; max-width:350px; width:90%; text-align:center; }
+        .poster-image { width:100%; border-radius:24px; }
+        .poster-tip { margin-top:16px; color:#1e3a5f; }
+        .close-poster { margin-top:16px; background:#ccc; border:none; padding:10px 30px; border-radius:40px; cursor:pointer; }
+        #posterHidden { position:fixed; left:-9999px; top:0; width:375px; background:#fff; border-radius:36px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.1); }
+        .poster-content { text-align:center; }
+        .poster-img { max-width:200px; width:100%; border-radius:24px; margin:10px auto; display:block; }
+        .poster-name { font-size:2.2rem; font-weight:850; color:#0b3349; }
+        .poster-quote { background:#e3f0fa; padding:16px; border-radius:24px; margin:15px 0; font-size:1.2rem; border-left:6px solid #3e7b9c; }
+        .poster-qrcode { display:flex; flex-direction:column; align-items:center; margin-top:15px; }
+        .qrcode-canvas { width:150px; height:150px; border-radius:12px; background:#fff; }
+        .qrcode-text { margin-top:8px; color:#3a6d8c; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="homeSection">
+        <div class="card">
+            <div class="hero-title">MBTI已经过时，股市GBTI来了</div>
+            <div class="hero-sub">本测试纯属娱乐，不构成任何投资建议、相亲资料、面试简历等证明。</div>
+            <div class="start-btn-wrapper">
+                <button class="btn-start" id="startTestBtn">✨ 开始测试 ✨</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="grid-title">🥬 16种韭味人格一览</div>
+            <div class="personality-grid" id="personalityGrid"></div>
+        </div>
+    </div>
+    <div id="quizSection" class="hidden">
+        <div class="card">
+            <div class="progress-section">
+                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="progress-text" id="progressText">0/20</div>
+            </div>
+            <div id="questionContainer"></div>
+            <div class="nav-buttons">
+                <button class="btn" id="prevBtn" disabled>← 上一题</button>
+                <div></div>
+            </div>
+            <div class="hint-text">点击选项即自动进入下一题</div>
+        </div>
+    </div>
+    <div id="resultSection" class="card hidden">
+        <div id="resultContent"></div>
+        <div class="share-btn-wrapper">
+            <button class="btn-share" id="shareBtn">📤 分享我的GBTI</button>
+        </div>
+        <div class="restart-btn">
+            <button class="btn btn-primary" id="restartBtn">🍃 重新测试</button>
+        </div>
+    </div>
+    <div class="footer">股市GBTI · 韭味检测</div>
+</div>
+
+<!-- 隐藏海报（用于截图） -->
+<div id="posterHidden">
+    <div class="poster-content">
+        <img id="posterImg" class="poster-img" src="" alt="人格图片">
+        <div id="posterName" class="poster-name"></div>
+        <div id="posterQuote" class="poster-quote"></div>
+        <div class="poster-qrcode">
+            <canvas id="qrcodeCanvas" class="qrcode-canvas"></canvas>
+            <div class="qrcode-text">扫码测测你的股市GBTI</div>
+        </div>
+    </div>
+</div>
+
+<!-- 分享弹窗 -->
+<div id="posterModal" class="poster-modal hidden">
+    <div class="poster-container">
+        <img id="posterResultImg" class="poster-image" src="" alt="分享海报">
+        <div class="poster-tip">👇 长按图片保存或分享给朋友</div>
+        <button class="close-poster" id="closePosterBtn">关闭</button>
+    </div>
+</div>
+
+<script>
+(function(){
+    "use strict";
+
+    // ---------- 题库 ----------
+    const questions = [
+        { text: "早上醒来，发现昨晚美股中概股集体“跳水”，你的第一反应是？", options: ["果然，我也觉得要跳水。", "机会来了，打开账户准备接飞刀。", "只要我不看，它就没跌。", "赶紧去群里问问：兄弟们，出什么事了？"] },
+        { text: "看到某个博主说“这只票有翻倍潜力”，你会？", options: ["先点举报，再反手买入。", "默默打开财报，研究该博主是不是在骗我去接盘。", "直接梭哈，主打一个信任。", "加入自选，等它涨了 50% 再追。"] },
+        { text: "作为一名对视觉有追求的人，你对 K 线图的要求是？", options: ["只要是红色的，哪怕是乱画的我也喜欢。", "构图要精美，符合斐波那契回撤的艺术感。", "别看了，这个走势比我改了十遍的方案还丑。", "我只看月线，因为日线波动太大影响我睡眠。"] },
+        { text: "帮长辈理财时，账户绿了 10%，你如何解释？", options: ["“妈，这是系统显示的护眼模式，保护视力。”", "“这是深度回调，属于价值投资的一部分。”", "“我反向操作了，其实我们是在做空。”", "“别问了，正在割肉，止损位到了。”"] },
+        { text: "你的“选股秘籍”通常来源于？", options: ["睡觉时的灵感（托梦）。", "某宝理财社区的评论区小作文。", "熬夜看完 50 份研报后的视力模糊。", "扔硬币，字朝上买涨，字朝下买跌。"] },
+        { text: "关于“仓位”，你的座右铭是？", options: ["满仓是对市场最基本的尊重", "轻仓像没买，重仓像自残。", "只要还有一分钱没买成股票，我都觉得亏了。", "现金才是王道，空仓就能打败80%的人。"] },
+        { text: "账户突然涨停了，你会？", options: ["赶紧截图发朋友圈，假装这是常态。", "怀疑自己买错了，赶紧看看代码。", "打开某车帝开始选车了。", "趁还没跌回来，赶紧跑路。"] },
+        { text: "跌了 30% 后，你最常说的一句话是？", options: ["“我要做时间的朋友。”", "“给个机会，回本我就卖”", "“垃圾公司，退钱！”", "“有本事你继续跌，敢跌我就敢补”"] },
+        { text: "你如何看待“技术指标”（如 SMA 或 MACD）？", options: ["那是算命先生的罗盘。", "是我掩盖内心慌张的科学工具。", "只要交叉了，我就得冲。", "指标说买，我就卖；指标说卖，我就买。"] },
+        { text: "在公司旅游团聚餐时，大家都聊起股票，你会？", options: ["充当意见领袖，虽然自己还亏着。", "默默埋头吃饭，心里计算着这顿饭等于亏了几手。", "掏出手机安利大家一起梭哈。", "提醒大家风险，结果被嫌弃破坏气氛。"] },
+        { text: "某天你关注的股票突然停牌了，你的第一反应是？", options: ["完蛋，公司老板肯定带着小姨子跑路了。", "机会来了！重组、收购、泼天富贵要来了！", "翻开公告和法律条款，分析停牌风险等级。", "无所谓，反正我已经亏到忘了账户密码。"] },
+        { text: "你如何看待“打新”（申购新股）？", options: ["投资生涯唯一的发财机会，全家账号齐上阵。", "一种玄学，取决于我当天洗没洗手。", "经过严谨破发概率测算后的套利行为。", "已经不看了，中奖绝缘体”。"] },
+        { text: "当你发现自己卖掉的股票，第二天就涨停了，你会？", options: ["在家砸键盘，并诅咒主力盯着你的那几百块钱。", "忍无可忍，在涨停板反手追回来。", "深呼吸，告诉自己：我不赚认知以外的钱。", "含泪删自选，寻找下一个涨停票。"] },
+        { text: "你的“解套”终极策略是？", options: ["只要我不断加仓，成本就能摊薄到无限接近于0。", "给公司打骚扰电话，催促董秘发利好。", "哪怕跌成渣，我也要拿着收红利（如果有的话）。", "哪怕亏 90% 也要一刀两断，换一只票重新受骗。"] },
+        { text: "如果和很多朋友一起出去旅游，你会推荐大家买什么？", options: ["既然在旅游，当然是买旅游板块，直接看涨！", "劝大家把钱存余某宝，别像我一样天天看盘。", "疯狂安利我持仓的票，试图让大家帮我抬轿子。", "闭口不谈，怕回国后大家因为亏钱把我踢出群。"] },
+        { text: "你对“黄金”的看法是？", options: ["乱世买金，配置点准没错。", "涨这么多还买？那是大妈干的事。", "金光闪闪的，符合我的设计师审美，买！", "我不管，我要为信仰充值。"] },
+        { text: "你的炒股软件里，“自选股”的数量通常是？", options: ["0 个，我看中哪个直接现搜现买。", "3-5 个，都是我祖宗八代都研究透了的。", "几百个，全市场涨过的票都在我这儿挂了号。", "全是已经跌成狗的票，留着它们是为了警示自己。"] },
+        { text: "如果市场连续暴跌三天，你的身体反应是？", options: ["肾上腺素飙升，总觉得有个惊天大底等着我。", "呼吸困难，间歇性产生“销户离场”的冲动。", "胃口极好，反正钱亏了，不能再亏了身体。", "事已至此，研究研究回头抄底哪只吧。"] },
+        { text: "你认为什么是“价值投资”？", options: ["买了之后跌了，被迫长期持有。", "找到那种能让我睡觉都笑醒的公司。", "跟着大佬买，大佬不走我不走。", "一种用来安慰自己亏损的高级话术。"] },
+        { text: "最后，如果你中了一千万大奖，你会？", options: ["先还清房贷，剩下的买 10 年期国债。", "全部投入股市，要把当年亏的那五万块赢回来！", "拿出一半买入股票，剩下的一半留着补仓。", "买基金，然后每天监督基金经理被虐。"] }
+    ];
+
+    const scoreMaps = [
+        { maps: [ {S:1}, {B:1}, {H:1}, {G:1} ] },{ maps: [ {G:1,F:1}, {R:1}, {A:1}, {F:1} ] },{ maps: [ {F:1}, {R:1}, {S:1}, {P:1} ] },{ maps: [ {H:1}, {R:1}, {G:1}, {S:1} ] },{ maps: [ {G:1}, {G:1}, {R:1}, {A:1} ] },{ maps: [ {A:1}, {P:1}, {A:1}, {P:1} ] },{ maps: [ {F:1}, {R:1}, {G:1}, {S:1} ] },{ maps: [ {H:1}, {H:1}, {S:1}, {B:1} ] },{ maps: [ {G:1}, {R:1}, {F:1}, {B:1} ] },{ maps: [ {G:1}, {S:1}, {A:1}, {P:1} ] },{ maps: [ {G:1,S:1}, {G:1,H:1}, {R:1}, {H:1} ] },{ maps: [ {A:1}, {G:1}, {R:1}, {P:1} ] },{ maps: [ {S:1}, {F:1}, {R:1}, {B:1} ] },{ maps: [ {A:1,B:1}, {G:1}, {H:1}, {S:1} ] },{ maps: [ {F:1}, {P:1}, {A:1}, {S:1} ] },{ maps: [ {P:1}, {B:1}, {G:1}, {F:1} ] },{ maps: [ {A:1}, {R:1}, {F:1}, {H:1} ] },{ maps: [ {B:1}, {S:1}, {H:1}, {R:1} ] },{ maps: [ {H:1}, {R:1}, {G:1}, {S:1} ] },{ maps: [ {P:1}, {A:1}, {B:1}, {R:1} ] }
+    ];
+
+    // 人格库（图片路径请根据实际后缀调整 .JPG 或 .jpg）
+    const personalities = {
+        "GAFS": { name:"股市慈善家", desc:"听风就是雨，看涨就梭哈，追在最高点，割在最低位。", quote:"“我离财富自由只差一次回本。”", img:"测试图片/GAFS.JPG" },
+        "RPBH": { name:"研报复读机", desc:"满脑子专业术语，永远在等底部的底部，结果等到了退市还在坚持价值投资。", quote:"“基本面没变，跌只是市场的错。”", img:"测试图片/RPBH.JPG" },
+        "GABH": { name:"满仓装死大师", desc:"听信小道消息后满仓被套，从此卸载软件，立地成佛。", quote:"“只要我不卖，我就没亏。”", img:"测试图片/GABH.JPG" },
+        "RPFS": { name:"券商最爱的人", desc:"每天忙于买入卖出，除了给券商贡献手续费，自己账户一分没剩。", quote:"“虽然没赚钱，但我参与了千亿级的项目。”", img:"测试图片/RPFS.JPG" },
+        "RPFH": { name:"被迫型价投专家", desc:"研究了半年才决定追涨，一买就跌，一跌就开启养老模式。", quote:"“这票我打算留给我孙子。”", img:"测试图片/RPFH.JPG" },
+        "GAFH": { name:"灯塔型投资者", desc:"操作精准避开所有涨幅，完美踩中所有大坑，是朋友圈的反向风向标。", quote:"“跟我反着买，别墅靠大海。”", img:"测试图片/GAFH.JPG" },
+        "RABS": { name:"主力筹码供应商", desc:"分析好久选出一个票，但心理素质极差，梭哈抄底后遇到一个震荡就吓得交出筹码。", quote:"“道理我都懂，但手它不听使唤。”", img:"测试图片/RABS.JPG" },
+        "GPBS": { name:"气氛组组长", desc:"仓位极小，但每天在群里分析得头头是道，主打一个陪伴。", quote:"“幸好我只买了一手，不然今天就破产了。”", img:"测试图片/GPBS.JPG" },
+        "RAFH": { name:"赛博山顶洞人", desc:"用最专业的模型，论证为什么在历史最高点买入是合理的。", quote:"“突破了阻力位，星辰大海才是终点。”", img:"测试图片/RAFH.JPG" },
+        "GABS": { name:"地板出货王", desc:"听说有底就冲进去，跌一分钱就觉得要崩盘，光速割肉。", quote:"“跑得快，也是一种才华。”", img:"测试图片/GABS.JPG" },
+        "RPBS": { name:"股市陪伴师", desc:"总是觉得市场不够安全，完美的避开了每一次牛市。", quote:"“风险太高，我再观察观察（然后它又涨了 20%）。”", img:"测试图片/RPBS.JPG" },
+        "GPBH": { name:"随缘投资艺术家", desc:"听群友的话买了一点点，然后忘了密码。", quote:"“哎呀，我居然还有这个股票？”", img:"测试图片/GPBH.JPG" },
+        "RAFS": { name:"涨停板敢死队", desc:"满仓进场，稍有不顺就核按钮，并立刻卖出反向做空。", quote:"“这破票不涨肯定有黑幕！”", img:"测试图片/RAFS.JPG" },
+        "GPFS": { name:"犹豫不决的韭黄", desc:"底部不敢买，涨了不敢追，最后在天花板忍不住进场。", quote:"“我看它涨得实在太好看了。”", img:"测试图片/GPFS.JPG" },
+        "RABH": { name:"韭战成神", desc:"运用毕生所学，在下跌趋势中不断加仓，终于从散户熬成了股东。", quote:"“下跌就是摊薄成本的最好时机。”", img:"测试图片/RABH.JPG" },
+        "GPFH": { name:"佛系韭菜芽", desc:"看着别人赚眼红，买一点试试，亏了就当捐款。", quote:"“理财嘛，最重要是开心。”", img:"测试图片/GPFH.JPG" }
+    };
+
+    // 当前人格
+    let currentPersonality = null;
+
+    // DOM 元素
+    const homeSection = document.getElementById('homeSection');
+    const quizSection = document.getElementById('quizSection');
+    const resultSection = document.getElementById('resultSection');
+    const questionDiv = document.getElementById('questionContainer');
+    const prevBtn = document.getElementById('prevBtn');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const resultContent = document.getElementById('resultContent');
+    const startBtn = document.getElementById('startTestBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const gridContainer = document.getElementById('personalityGrid');
+    const posterModal = document.getElementById('posterModal');
+    const posterResultImg = document.getElementById('posterResultImg');
+    const closePosterBtn = document.getElementById('closePosterBtn');
+    const posterHidden = document.getElementById('posterHidden');
+    const posterImg = document.getElementById('posterImg');
+    const posterName = document.getElementById('posterName');
+    const posterQuote = document.getElementById('posterQuote');
+    const qrcodeCanvas = document.getElementById('qrcodeCanvas');
+
+    // ---------- 渲染首页网格 ----------
+    function renderGrid() {
+        let html = '';
+        for (let code in personalities) {
+            const p = personalities[code];
+            html += `<div class="grid-item">
+                <img src="${p.img}" alt="${p.name}" class="grid-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\'%3E%3Crect width=\'120\' height=\'120\' fill=\'%23cddbe8\'/%3E%3Ctext x=\'10\' y=\'70\' font-size=\'14\' fill=\'%231e3a5f\'%3E图片缺失%3C/text%3E%3C/svg%3E'">
+                <div class="grid-name">${p.name}</div>
+            </div>`;
+        }
+        gridContainer.innerHTML = html;
+    }
+    renderGrid();
+
+    // ---------- 答题逻辑 ----------
+    let currentIndex = 0, answers = new Array(20).fill(null);
+
+    function renderQuestion(i) {
+        let q = questions[i], sel = answers[i];
+        let h = `<div class="q-num">第 ${i+1} 题 / 20</div><div class="q-text">${q.text}</div><div class="options">`;
+        q.options.forEach((opt, idx) => {
+            let letter = String.fromCharCode(65+idx);
+            h += `<div class="option ${sel===idx?'selected':''}" data-opt="${idx}"><span class="option-letter">${letter}</span> ${opt}</div>`;
+        });
+        h += `</div>`;
+        questionDiv.innerHTML = h;
+        document.querySelectorAll('.option').forEach(el => {
+            el.addEventListener('click', () => {
+                const o = parseInt(el.dataset.opt);
+                answers[currentIndex] = o;
+                if (currentIndex < 19) {
+                    currentIndex++;
+                    renderQuestion(currentIndex);
+                } else {
+                    if (!answers.includes(null)) showResult();
+                    else renderQuestion(currentIndex);
+                }
+                updateProgress();
+            });
+        });
+        updateProgress();
+    }
+
+    function updateProgress() {
+        let a = answers.filter(v => v !== null).length;
+        progressFill.style.width = (a/20*100) + '%';
+        progressText.textContent = a + '/20';
+        prevBtn.disabled = (currentIndex === 0);
+    }
+
+    function goPrev() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderQuestion(currentIndex);
+        }
+    }
+
+    function calcScores() {
+        let s = {G:0,R:0,A:0,P:0,F:0,B:0,S:0,H:0};
+        for (let i=0; i<20; i++) {
+            let m = scoreMaps[i].maps[answers[i]];
+            if (m) for (let k in m) s[k] += m[k];
+        }
+        return s;
+    }
+
+    function showResult() {
+        let scores = calcScores();
+        let code = (scores.G>=scores.R?'G':'R') + (scores.A>=scores.P?'A':'P') + (scores.F>=scores.B?'F':'B') + (scores.S>=scores.H?'S':'H');
+        let p = personalities[code] || { name:"神秘韭人", desc:"独树一帜", quote:"市场需要流动性" };
+        currentPersonality = p;
+        homeSection.classList.add('hidden');
+        quizSection.classList.add('hidden');
+        resultSection.classList.remove('hidden');
+        let html = `<div class="result-header">✨ 你的股市GBTI ✨</div>`;
+        if (p.img) html += `<div class="personality-image-container"><img src="${p.img}" alt="${p.name}" class="personality-image" onerror="this.style.display='none'"></div>`;
+        html += `<div class="personality-name-large">${p.name}</div><div class="feature-text">${p.desc}</div><div class="quote-large">${p.quote}</div><p style="text-align:center; color:#3a6d8c; margin-top:30px;">系统寄语：感谢您为市场流动性做出的卓越贡献，券商和主力都会永远铭记您的慷慨！</p>`;
+        resultContent.innerHTML = html;
+    }
+
+    // ---------- 二维码生成 (纯 Canvas) ----------
+    function generateQRCode(text, canvas, size = 150) {
+        // 使用 QRCode 库 (qrcode-generator) 需要在前面引入，但我们没有用 CDN，所以直接内嵌一个极简 QR 生成器
+        // 为了避免依赖，手写一个简易 QR 不太现实，这里用 qrcode-generator 但以防 CDN 不稳定，我们改用可靠的方式：
+        // 实际上代码头部没有引入 qrcode-generator，所以需要在运行时动态加载。
+        // 为了稳定，这里使用原生 API 加载。
+        if (typeof qrcode === 'undefined') {
+            // 动态加载 qrcode-generator
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+            script.onload = () => generateQRCode(text, canvas, size);
+            document.head.appendChild(script);
+            return;
+        }
+        try {
+            const qr = qrcode(0, 'M');
+            qr.addData(text);
+            qr.make();
+            const cellSize = size / qr.getModuleCount();
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#000';
+            for (let row = 0; row < qr.getModuleCount(); row++) {
+                for (let col = 0; col < qr.getModuleCount(); col++) {
+                    if (qr.isDark(row, col)) {
+                        ctx.fillRect(col*cellSize, row*cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('二维码生成失败', e);
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#666';
+            ctx.font = '12px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('二维码生成失败', size/2, size/2);
+        }
+    }
+
+    // 检查 qrcode 库是否存在，若不存在则加载
+    function ensureQRCodeLibrary(callback) {
+        if (typeof qrcode !== 'undefined') {
+            callback();
+        } else {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+            script.onload = callback;
+            document.head.appendChild(script);
+        }
+    }
+
+    // ---------- 分享海报 ----------
+    function generatePoster() {
+        if (!currentPersonality) return;
+
+        posterImg.src = currentPersonality.img;
+        posterName.textContent = currentPersonality.name;
+        posterQuote.textContent = currentPersonality.quote;
+
+        // 获取当前网址，如果是本地则显示提示
+        const url = window.location.href;
+        const isLocal = url.startsWith('file://');
+
+        ensureQRCodeLibrary(() => {
+            const canvas = qrcodeCanvas;
+            if (isLocal) {
+                const ctx = canvas.getContext('2d');
+                canvas.width = 150; canvas.height = 150;
+                ctx.fillStyle = '#f5f5f5';
+                ctx.fillRect(0, 0, 150, 150);
+                ctx.fillStyle = '#666';
+                ctx.font = '12px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText('请先部署到线上', 75, 70);
+                ctx.fillText('再扫码分享', 75, 90);
+            } else {
+                generateQRCode(url, canvas, 150);
+            }
+
+            // 等待 DOM 更新后截图
+            setTimeout(() => {
+                html2canvas(posterHidden, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    allowTaint: false,
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    posterResultImg.src = canvas.toDataURL('image/png');
+                    posterModal.classList.remove('hidden');
+                }).catch(err => {
+                    alert('生成海报失败，可尝试刷新。\n' + err);
+                });
+            }, 300);
+        });
+    }
+
+    function startQuiz() {
+        answers = new Array(20).fill(null);
+        currentIndex = 0;
+        homeSection.classList.add('hidden');
+        quizSection.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+        renderQuestion(0);
+    }
+
+    function restartToHome() {
+        homeSection.classList.remove('hidden');
+        quizSection.classList.add('hidden');
+        resultSection.classList.add('hidden');
+        answers = new Array(20).fill(null);
+        currentIndex = 0;
+    }
+
+    // 事件绑定
+    startBtn.addEventListener('click', startQuiz);
+    restartBtn.addEventListener('click', restartToHome);
+    prevBtn.addEventListener('click', goPrev);
+    shareBtn.addEventListener('click', generatePoster);
+    closePosterBtn.addEventListener('click', () => posterModal.classList.add('hidden'));
+    posterModal.addEventListener('click', (e) => { if (e.target === posterModal) posterModal.classList.add('hidden'); });
+
+    // 初始化
+    homeSection.classList.remove('hidden');
+    quizSection.classList.add('hidden');
+    resultSection.classList.add('hidden');
+})();
+</script>
+</body>
+</html>
